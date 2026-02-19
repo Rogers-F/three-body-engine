@@ -112,6 +112,36 @@ ORDER BY created_at_unix ASC`
 	return workers, rows.Err()
 }
 
+// ListByTask returns all workers for a task regardless of state, ordered by creation time.
+func (r *WorkerRepo) ListByTask(ctx context.Context, db *sql.DB, taskID string) ([]*domain.WorkerRef, error) {
+	const q = `SELECT worker_id, task_id, phase, role, state, file_ownership, soft_timeout_sec, hard_timeout_sec, last_heartbeat, created_at_unix
+FROM workers WHERE task_id = ?
+ORDER BY created_at_unix ASC`
+
+	rows, err := db.QueryContext(ctx, q, taskID)
+	if err != nil {
+		return nil, fmt.Errorf("list workers by task: %w", err)
+	}
+	defer rows.Close()
+
+	var workers []*domain.WorkerRef
+	for rows.Next() {
+		var w domain.WorkerRef
+		var phase, state, ownershipJSON string
+		if err := rows.Scan(&w.WorkerID, &w.TaskID, &phase, &w.Role, &state, &ownershipJSON,
+			&w.SoftTimeoutSec, &w.HardTimeoutSec, &w.LastHeartbeat, &w.CreatedAtUnix); err != nil {
+			return nil, fmt.Errorf("scan worker: %w", err)
+		}
+		w.Phase = domain.Phase(phase)
+		w.State = domain.WorkerState(state)
+		if err := json.Unmarshal([]byte(ownershipJSON), &w.FileOwnership); err != nil {
+			return nil, fmt.Errorf("unmarshal file_ownership: %w", err)
+		}
+		workers = append(workers, &w)
+	}
+	return workers, rows.Err()
+}
+
 // UpdateHeartbeat updates the last_heartbeat timestamp for a worker.
 func (r *WorkerRepo) UpdateHeartbeat(ctx context.Context, db *sql.DB, workerID string, ts int64) error {
 	const q = `UPDATE workers SET last_heartbeat = ? WHERE worker_id = ?`

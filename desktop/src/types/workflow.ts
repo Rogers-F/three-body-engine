@@ -205,6 +205,14 @@ export interface CostDelta {
   phase: Phase
 }
 
+/** Aggregated cost summary (matches backend API response) */
+export interface CostSummary {
+  budgetUsedUsd: number
+  budgetCapUsd: number
+  costAction: CostActionType
+  deltas: CostDelta[]
+}
+
 /** Phase metadata for display */
 export interface PhaseInfo {
   id: Phase

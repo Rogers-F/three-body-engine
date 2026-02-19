@@ -2,10 +2,12 @@ import { memo, useMemo } from 'react'
 import { X } from 'lucide-react'
 import { WorkflowCanvas } from '@/components/workflow/WorkflowCanvas'
 import { useCanvasStore } from '@/stores/canvas-store'
+import { useWorkflowStore } from '@/stores/workflow-store'
 import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { mockWorkers } from '@/data/mock-workflow'
 import { PHASES } from '@/types/workflow'
+import { useWorkers } from '@/api/hooks'
 
 function getDrawerTitle(
   phase: (typeof PHASES)[number] | undefined,
@@ -19,16 +21,20 @@ function getDrawerTitle(
 export const DashboardView = memo(function DashboardView() {
   const selectedNodeId = useCanvasStore((s) => s.selectedNodeId)
   const selectNode = useCanvasStore((s) => s.selectNode)
+  const taskId = useWorkflowStore((s) => s.taskId)
+
+  const { workers: apiWorkers, error: workersError } = useWorkers(taskId)
+  const workers = taskId && !workersError && apiWorkers.length > 0 ? apiWorkers : mockWorkers
 
   const drawerOpen = selectedNodeId != null
 
   const selectedPhase = PHASES.find((p) => `phase-${p.id}` === selectedNodeId)
-  const selectedWorker = mockWorkers.find(
+  const selectedWorker = workers.find(
     (w) => `worker-${w.phase}-${w.role}` === selectedNodeId,
   )
   const phaseWorkers = useMemo(
-    () => selectedPhase ? mockWorkers.filter((w) => w.phase === selectedPhase.id) : [],
-    [selectedPhase],
+    () => selectedPhase ? workers.filter((w) => w.phase === selectedPhase.id) : [],
+    [selectedPhase, workers],
   )
 
   return (

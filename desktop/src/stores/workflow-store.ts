@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import type { Phase, FlowState, WorkerSpec, WorkflowEvent, ScoreCard, CostDelta } from '@/types/workflow'
 
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
+
 interface WorkflowStore {
   flow: FlowState | null
   workers: WorkerSpec[]
@@ -8,11 +10,18 @@ interface WorkflowStore {
   scoreCards: ScoreCard[]
   costDeltas: CostDelta[]
 
+  taskId: string | null
+  apiUrl: string
+  connectionStatus: ConnectionStatus
+
   setFlow: (flow: FlowState) => void
   addEvent: (event: WorkflowEvent) => void
   setWorkers: (workers: WorkerSpec[]) => void
   addScoreCard: (card: ScoreCard) => void
   addCostDelta: (delta: CostDelta) => void
+  setTaskId: (taskId: string | null) => void
+  setApiUrl: (url: string) => void
+  setConnectionStatus: (status: ConnectionStatus) => void
   reset: () => void
 
   currentPhase: () => Phase | null
@@ -26,6 +35,9 @@ const initialState = {
   events: [],
   scoreCards: [],
   costDeltas: [],
+  taskId: null as string | null,
+  apiUrl: 'http://localhost:9800',
+  connectionStatus: 'disconnected' as ConnectionStatus,
 }
 
 export const useWorkflowStore = create<WorkflowStore>()((set, get) => ({
@@ -46,6 +58,12 @@ export const useWorkflowStore = create<WorkflowStore>()((set, get) => ({
   addCostDelta: (delta) => set((state) => ({
     costDeltas: [...state.costDeltas, delta],
   })),
+
+  setTaskId: (taskId) => set({ taskId }),
+
+  setApiUrl: (apiUrl) => set({ apiUrl }),
+
+  setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
 
   reset: () => set(initialState),
 

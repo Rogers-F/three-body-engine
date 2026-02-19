@@ -86,6 +86,34 @@ CREATE TABLE IF NOT EXISTS workers (
 	created_at_unix  INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_workers_task ON workers(task_id, state);
+
+CREATE TABLE IF NOT EXISTS score_cards (
+	review_id         TEXT PRIMARY KEY,
+	task_id           TEXT NOT NULL,
+	reviewer          TEXT NOT NULL,
+	correctness       INTEGER NOT NULL DEFAULT 0,
+	security          INTEGER NOT NULL DEFAULT 0,
+	maintainability   INTEGER NOT NULL DEFAULT 0,
+	cost              INTEGER NOT NULL DEFAULT 0,
+	delivery_risk     INTEGER NOT NULL DEFAULT 0,
+	issues_json       TEXT NOT NULL DEFAULT '[]',
+	alternatives_json TEXT NOT NULL DEFAULT '[]',
+	verdict           TEXT NOT NULL DEFAULT '',
+	created_at        INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_score_cards_task ON score_cards(task_id);
+
+CREATE TABLE IF NOT EXISTS cost_deltas (
+	id            INTEGER PRIMARY KEY AUTOINCREMENT,
+	task_id       TEXT NOT NULL,
+	input_tokens  INTEGER NOT NULL DEFAULT 0,
+	output_tokens INTEGER NOT NULL DEFAULT 0,
+	amount_usd    REAL NOT NULL DEFAULT 0.0,
+	provider      TEXT NOT NULL DEFAULT '',
+	phase         TEXT NOT NULL DEFAULT '',
+	created_at    INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_cost_deltas_task ON cost_deltas(task_id);
 `
 
 // NewDB opens a SQLite database at the given path with recommended pragmas

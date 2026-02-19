@@ -186,11 +186,13 @@ type Issue struct {
 // ScoreCard is a structured review output from a reviewer.
 type ScoreCard struct {
 	ReviewID     string
+	TaskID       string
 	Reviewer     string
 	Scores       Scores
 	Issues       []Issue
 	Alternatives []string
 	Verdict      string
+	CreatedAt    int64
 }
 
 // ConsensusResult is the aggregated review decision.
@@ -235,6 +237,7 @@ type CostDelta struct {
 	AmountUSD    float64
 	Provider     Provider
 	Phase        Phase
+	CreatedAt    int64
 }
 
 // WorkerRef tracks an active worker instance.
