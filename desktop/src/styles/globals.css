@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Mode (Warm Palette) */
+  --bg-primary: #FAF9F0;
+  --bg-secondary: #F5F4EB;
+  --bg-card: #FFFFFF;
+  --text-primary: #1D1D1F;
+  --text-secondary: #6B6B6F;
+  --text-muted: #6E6E73;
+  --accent: #D97757;
+  --accent-text: #B85A3A;
+  --accent-hover: #C46849;
+  --border: #E8E7DF;
+  --border-subtle: #F0EFE7;
+
+  /* Phase Status */
+  --phase-pending: #9A9A9E;
+  --phase-active: #D97757;
+  --phase-completed: #4CAF7D;
+  --phase-error: #DF6666;
+  --phase-warning: #E5A84B;
+
+  /* Three-Body Role Colors */
+  --role-primary: #D97757;
+  --role-engineer: #3B82F6;
+  --role-designer: #8B5CF6;
+}
+
+.dark {
+  --bg-primary: #131314;
+  --bg-secondary: #1C1C1E;
+  --bg-card: #232326;
+  --text-primary: #F1F5F9;
+  --text-secondary: #9A9A9E;
+  --text-muted: #6B6B6F;
+  --accent: #D97757;
+  --accent-text: #E8A08A;
+  --accent-hover: #E88B6D;
+  --border: #2C2C2F;
+  --border-subtle: #1F1F22;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 87, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(217, 119, 87, 0); }
+}
+
+@keyframes edge-flow {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}

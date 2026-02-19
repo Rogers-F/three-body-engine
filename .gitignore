@@ -1,0 +1,48 @@
+# Go
+engine/threebody
+engine/threebody.exe
+engine/codeagent-wrapper
+engine/codeagent-wrapper.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Node / Frontend
+desktop/node_modules/
+desktop/dist/
+desktop/.vite/
+desktop/*.local
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Three-Body Runtime
+.task/
+.threebody/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Temporary
+scratch/
+tmp/
+sandbox/
