@@ -1,14 +1,13 @@
-import { memo, type ReactNode } from 'react'
+import { memo } from 'react'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
-import { WorkflowCanvas } from '@/components/workflow/WorkflowCanvas'
+import { DashboardView } from '@/views/DashboardView'
+import { ReviewView } from '@/views/ReviewView'
+import { CostView } from '@/views/CostView'
+import { SettingsView } from '@/views/SettingsView'
 import { useUIStore } from '@/stores/ui-store'
 
-interface ShellProps {
-  children?: ReactNode
-}
-
-export const Shell = memo(function Shell({ children }: ShellProps) {
+export const Shell = memo(function Shell() {
   const activeNav = useUIStore((s) => s.activeNav)
   const setActiveNav = useUIStore((s) => s.setActiveNav)
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed)
@@ -25,15 +24,10 @@ export const Shell = memo(function Shell({ children }: ShellProps) {
       <div className="flex flex-col flex-1 min-w-0">
         <TopBar />
         <main className="flex-1 overflow-auto p-6">
-          {activeNav === 'dashboard' ? (
-            <WorkflowCanvas />
-          ) : (
-            children ?? (
-              <div className="text-[var(--text-muted)] text-sm">
-                Select a view from the sidebar.
-              </div>
-            )
-          )}
+          {activeNav === 'dashboard' && <DashboardView />}
+          {activeNav === 'review' && <ReviewView />}
+          {activeNav === 'cost' && <CostView />}
+          {activeNav === 'settings' && <SettingsView />}
         </main>
       </div>
     </div>

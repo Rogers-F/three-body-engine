@@ -68,6 +68,49 @@ ORDER BY intent_id ASC`
 	return intents, rows.Err()
 }
 
+// GetByID retrieves a single intent by its ID.
+func (r *IntentRepo) GetByID(ctx context.Context, db *sql.DB, intentID string) (*domain.Intent, error) {
+	const q = `SELECT intent_id, task_id, worker_id, target_file, operation, status, pre_hash, post_hash, payload_hash, lease_until
+FROM intent_logs WHERE intent_id = ?`
+
+	row := db.QueryRowContext(ctx, q, intentID)
+	var i domain.Intent
+	err := row.Scan(&i.IntentID, &i.TaskID, &i.WorkerID, &i.TargetFile, &i.Operation,
+		&i.Status, &i.PreHash, &i.PostHash, &i.PayloadHash, &i.LeaseUntil)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, domain.ErrIntentNotFound
+		}
+		return nil, fmt.Errorf("get intent: %w", err)
+	}
+	return &i, nil
+}
+
+// FindActiveByFile returns active (pending/running) intents for a given task and target file.
+func (r *IntentRepo) FindActiveByFile(ctx context.Context, db *sql.DB, taskID, targetFile string) ([]domain.Intent, error) {
+	const q = `SELECT intent_id, task_id, worker_id, target_file, operation, status, pre_hash, post_hash, payload_hash, lease_until
+FROM intent_logs
+WHERE task_id = ? AND target_file = ? AND status IN ('pending', 'running')
+ORDER BY intent_id ASC`
+
+	rows, err := db.QueryContext(ctx, q, taskID, targetFile)
+	if err != nil {
+		return nil, fmt.Errorf("find active intents by file: %w", err)
+	}
+	defer rows.Close()
+
+	var intents []domain.Intent
+	for rows.Next() {
+		var i domain.Intent
+		if err := rows.Scan(&i.IntentID, &i.TaskID, &i.WorkerID, &i.TargetFile, &i.Operation,
+			&i.Status, &i.PreHash, &i.PostHash, &i.PayloadHash, &i.LeaseUntil); err != nil {
+			return nil, fmt.Errorf("scan intent: %w", err)
+		}
+		intents = append(intents, i)
+	}
+	return intents, rows.Err()
+}
+
 // MarkDoneTx marks an intent as done with a post-operation hash within a transaction.
 func (r *IntentRepo) MarkDoneTx(ctx context.Context, tx *sql.Tx, intentID, postHash string) error {
 	const q = `UPDATE intent_logs SET status = 'done', post_hash = ? WHERE intent_id = ?`

@@ -112,6 +112,23 @@ ORDER BY created_at_unix ASC`
 	return workers, rows.Err()
 }
 
+// UpdateHeartbeat updates the last_heartbeat timestamp for a worker.
+func (r *WorkerRepo) UpdateHeartbeat(ctx context.Context, db *sql.DB, workerID string, ts int64) error {
+	const q = `UPDATE workers SET last_heartbeat = ? WHERE worker_id = ?`
+	res, err := db.ExecContext(ctx, q, ts, workerID)
+	if err != nil {
+		return fmt.Errorf("update heartbeat: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("check rows affected: %w", err)
+	}
+	if n == 0 {
+		return domain.ErrWorkerNotFound
+	}
+	return nil
+}
+
 // CountActive returns the number of active (created or running) workers for a task.
 func (r *WorkerRepo) CountActive(ctx context.Context, db *sql.DB, taskID string) (int, error) {
 	const q = `SELECT COUNT(*) FROM workers WHERE task_id = ? AND state IN ('created', 'running')`

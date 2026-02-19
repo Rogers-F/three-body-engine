@@ -77,6 +77,13 @@ var (
 	ErrMaxRoundsExceeded  = &EngineError{Code: -32105, Message: "maximum review rounds exceeded"}
 )
 
+// ---- Review / Consensus errors (-32160 to -32189) ----
+
+var (
+	ErrScoreCardInvalid = &EngineError{Code: -32160, Message: "score card validation failed"}
+	ErrConsensusNoCards = &EngineError{Code: -32161, Message: "consensus requires at least one score card"}
+)
+
 // ---- Store / Recovery / Config errors (-32130 to -32159) ----
 
 var (
