@@ -72,6 +72,20 @@ CREATE TABLE IF NOT EXISTS intent_logs (
 	lease_until  INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_intents_task_status ON intent_logs(task_id, status);
+
+CREATE TABLE IF NOT EXISTS workers (
+	worker_id        TEXT PRIMARY KEY,
+	task_id          TEXT NOT NULL,
+	phase            TEXT NOT NULL,
+	role             TEXT NOT NULL DEFAULT '',
+	state            TEXT NOT NULL DEFAULT 'created',
+	file_ownership   TEXT NOT NULL DEFAULT '[]',
+	soft_timeout_sec INTEGER NOT NULL DEFAULT 300,
+	hard_timeout_sec INTEGER NOT NULL DEFAULT 600,
+	last_heartbeat   INTEGER NOT NULL DEFAULT 0,
+	created_at_unix  INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_workers_task ON workers(task_id, state);
 `
 
 // NewDB opens a SQLite database at the given path with recommended pragmas

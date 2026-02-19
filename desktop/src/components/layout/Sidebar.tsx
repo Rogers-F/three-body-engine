@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo } from 'react'
 import { LayoutDashboard, FileSearch, DollarSign, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface NavItem {
@@ -17,11 +17,16 @@ const navItems: NavItem[] = [
 interface SidebarProps {
   activeItem?: string
   onNavigate?: (id: string) => void
+  collapsed?: boolean
+  onToggle?: () => void
 }
 
-export const Sidebar = memo(function Sidebar({ activeItem = 'dashboard', onNavigate }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false)
-
+export const Sidebar = memo(function Sidebar({
+  activeItem = 'dashboard',
+  onNavigate,
+  collapsed = false,
+  onToggle,
+}: SidebarProps) {
   return (
     <aside
       className={[
@@ -31,7 +36,7 @@ export const Sidebar = memo(function Sidebar({ activeItem = 'dashboard', onNavig
     >
       <div className="flex items-center justify-end p-2">
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={onToggle}
           className={[
             'inline-flex items-center justify-center w-8 h-8 rounded-[8px] transition-all duration-150 outline-none cursor-pointer',
             'text-[var(--text-secondary)] bg-transparent',

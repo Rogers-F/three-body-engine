@@ -237,6 +237,29 @@ type CostDelta struct {
 	Phase        Phase
 }
 
+// WorkerRef tracks an active worker instance.
+type WorkerRef struct {
+	WorkerID       string
+	TaskID         string
+	Phase          Phase
+	Role           string
+	State          WorkerState
+	FileOwnership  []string
+	SoftTimeoutSec int
+	HardTimeoutSec int
+	LastHeartbeat  int64
+	CreatedAtUnix  int64
+}
+
+// CapabilitySheet defines allowed operations for a task.
+type CapabilitySheet struct {
+	TaskID          string
+	AllowedPaths    []string
+	AllowedCommands []string
+	DeniedPatterns  []string
+	CreatedAtUnix   int64
+}
+
 // CostAction is the decision from the cost governor.
 type CostAction string
 

@@ -49,8 +49,10 @@ var (
 	ErrWorkerReplaced     = &EngineError{Code: -32044, Message: "worker was replaced"}
 	ErrLeaseExpired       = &EngineError{Code: -32045, Message: "intent lease has expired"}
 	ErrFileOwnership      = &EngineError{Code: -32046, Message: "file ownership violation"}
-	ErrWorkerLimitReached = &EngineError{Code: -32047, Message: "maximum concurrent workers reached"}
-	ErrIntentHashMismatch = &EngineError{Code: -32048, Message: "intent pre-hash does not match current file"}
+	ErrWorkerLimitReached  = &EngineError{Code: -32047, Message: "maximum concurrent workers reached"}
+	ErrIntentHashMismatch  = &EngineError{Code: -32048, Message: "intent pre-hash does not match current file"}
+	ErrCompactionInvalid   = &EngineError{Code: -32049, Message: "compaction slots validation failed"}
+	ErrWorkerAlreadyDone   = &EngineError{Code: -32050, Message: "worker is already in terminal state"}
 )
 
 // ---- MCP / Bridge errors (-32070 to -32099) ----

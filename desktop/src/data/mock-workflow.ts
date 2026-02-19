@@ -1,0 +1,198 @@
+import type { FlowState, WorkerSpec, WorkflowEvent, ScoreCard, CostDelta } from '@/types/workflow'
+
+export const mockFlowState: FlowState = {
+  taskId: 'task-demo-001',
+  currentPhase: 'E',
+  status: 'running',
+  stateVersion: 12,
+  round: 1,
+  budgetUsedUsd: 3.45,
+  budgetCapUsd: 10.0,
+  lastEventSeq: 10,
+  updatedAtUnix: 1708300000,
+}
+
+export const mockWorkers: WorkerSpec[] = [
+  {
+    taskId: 'task-demo-001',
+    phase: 'E',
+    role: 'integrator',
+    fileOwnership: ['src/merge.ts', 'src/resolver.ts'],
+    digestPath: '/digests/e-integrator.json',
+    softTimeoutSec: 120,
+    hardTimeoutSec: 180,
+  },
+  {
+    taskId: 'task-demo-001',
+    phase: 'E',
+    role: 'validator',
+    fileOwnership: ['src/validate.ts'],
+    digestPath: '/digests/e-validator.json',
+    softTimeoutSec: 90,
+    hardTimeoutSec: 150,
+  },
+  {
+    taskId: 'task-demo-001',
+    phase: 'C',
+    role: 'coder',
+    fileOwnership: ['src/feature.ts', 'src/utils.ts'],
+    digestPath: '/digests/c-coder.json',
+    softTimeoutSec: 300,
+    hardTimeoutSec: 420,
+  },
+]
+
+export const mockEvents: WorkflowEvent[] = [
+  {
+    id: 1,
+    taskId: 'task-demo-001',
+    seqNo: 1,
+    phase: 'A',
+    eventType: 'flow_started',
+    payloadJson: '{"trigger":"user_request"}',
+    createdAt: 1708290000,
+  },
+  {
+    id: 2,
+    taskId: 'task-demo-001',
+    seqNo: 2,
+    phase: 'A',
+    eventType: 'phase_completed',
+    payloadJson: '{"result":"understood"}',
+    createdAt: 1708291000,
+  },
+  {
+    id: 3,
+    taskId: 'task-demo-001',
+    seqNo: 3,
+    phase: 'B',
+    eventType: 'phase_started',
+    payloadJson: '{"strategy":"modular_decomposition"}',
+    createdAt: 1708292000,
+  },
+  {
+    id: 4,
+    taskId: 'task-demo-001',
+    seqNo: 4,
+    phase: 'B',
+    eventType: 'phase_completed',
+    payloadJson: '{"artifacts":3}',
+    createdAt: 1708293000,
+  },
+  {
+    id: 5,
+    taskId: 'task-demo-001',
+    seqNo: 5,
+    phase: 'C',
+    eventType: 'phase_started',
+    payloadJson: '{"workers":2}',
+    createdAt: 1708294000,
+  },
+  {
+    id: 6,
+    taskId: 'task-demo-001',
+    seqNo: 6,
+    phase: 'C',
+    eventType: 'phase_completed',
+    payloadJson: '{"files_changed":5}',
+    createdAt: 1708295000,
+  },
+  {
+    id: 7,
+    taskId: 'task-demo-001',
+    seqNo: 7,
+    phase: 'D',
+    eventType: 'phase_started',
+    payloadJson: '{"reviewers":2}',
+    createdAt: 1708296000,
+  },
+  {
+    id: 8,
+    taskId: 'task-demo-001',
+    seqNo: 8,
+    phase: 'D',
+    eventType: 'rollback_triggered',
+    payloadJson: '{"reason":"security_issue","target_phase":"C"}',
+    createdAt: 1708297000,
+  },
+  {
+    id: 9,
+    taskId: 'task-demo-001',
+    seqNo: 9,
+    phase: 'D',
+    eventType: 'phase_completed',
+    payloadJson: '{"verdict":"conditional_pass"}',
+    createdAt: 1708298000,
+  },
+  {
+    id: 10,
+    taskId: 'task-demo-001',
+    seqNo: 10,
+    phase: 'E',
+    eventType: 'phase_started',
+    payloadJson: '{"workers":2}',
+    createdAt: 1708299000,
+  },
+]
+
+export const mockScoreCards: ScoreCard[] = [
+  {
+    reviewId: 'rev-001',
+    reviewer: 'provider-alpha',
+    scores: {
+      correctness: 4,
+      security: 4,
+      maintainability: 3,
+      cost: 4,
+      deliveryRisk: 3,
+    },
+    issues: [
+      {
+        severity: 'P1',
+        location: 'src/feature.ts:42',
+        description: 'Potential null pointer when upstream data is empty',
+        suggestion: 'Add null check before accessing .items property',
+        evidence: 'Line 42: data.items.map(...)',
+      },
+      {
+        severity: 'P2',
+        location: 'src/utils.ts:15',
+        description: 'Synchronous file read could block event loop',
+        suggestion: 'Use async readFile variant',
+        evidence: 'fs.readFileSync usage',
+      },
+    ],
+    alternatives: ['Consider using a streaming parser for large payloads'],
+    verdict: 'conditional_pass',
+  },
+  {
+    reviewId: 'rev-002',
+    reviewer: 'provider-beta',
+    scores: {
+      correctness: 3,
+      security: 4,
+      maintainability: 4,
+      cost: 3,
+      deliveryRisk: 4,
+    },
+    issues: [
+      {
+        severity: 'P1',
+        location: 'src/feature.ts:78',
+        description: 'Missing error boundary for external API call',
+        suggestion: 'Wrap in try-catch with retry logic',
+        evidence: 'Unhandled promise rejection path',
+      },
+    ],
+    alternatives: ['Use circuit breaker pattern for external dependencies'],
+    verdict: 'conditional_pass',
+  },
+]
+
+export const mockCostDeltas: CostDelta[] = [
+  { inputTokens: 2400, outputTokens: 800, amountUsd: 0.12, provider: 'claude', phase: 'A' },
+  { inputTokens: 5600, outputTokens: 2200, amountUsd: 0.45, provider: 'claude', phase: 'B' },
+  { inputTokens: 18000, outputTokens: 8500, amountUsd: 1.52, provider: 'codex', phase: 'C' },
+  { inputTokens: 12000, outputTokens: 4000, amountUsd: 0.88, provider: 'gemini', phase: 'D' },
+  { inputTokens: 8000, outputTokens: 3200, amountUsd: 0.48, provider: 'claude', phase: 'E' },
+]

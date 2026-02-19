@@ -204,3 +204,20 @@ export interface CostDelta {
   provider: Provider
   phase: Phase
 }
+
+/** Phase metadata for display */
+export interface PhaseInfo {
+  id: Phase
+  name: string
+  description: string
+}
+
+export const PHASES: PhaseInfo[] = [
+  { id: 'A', name: 'Understand', description: 'Task analysis & user confirmation' },
+  { id: 'B', name: 'Strategize', description: 'Architecture & compaction' },
+  { id: 'C', name: 'Execute', description: 'Code generation & testing' },
+  { id: 'D', name: 'Review', description: 'Multi-provider code review' },
+  { id: 'E', name: 'Integrate', description: 'Merge & conflict resolution' },
+  { id: 'F', name: 'Validate', description: 'Final validation & approval' },
+  { id: 'G', name: 'Complete', description: 'Delivery & cleanup' },
+]
