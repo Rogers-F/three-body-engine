@@ -265,7 +265,7 @@ func writeError(w http.ResponseWriter, err error) {
 		switch engErr.Code {
 		case domain.ErrFlowNotFound.Code, domain.ErrWorkerNotFound.Code, domain.ErrSessionNotFound.Code:
 			status = http.StatusNotFound
-		case domain.ErrDuplicateTask.Code:
+		case domain.ErrDuplicateTask.Code, domain.ErrOptimisticLock.Code:
 			status = http.StatusConflict
 		case domain.ErrBudgetExceeded.Code, domain.ErrPermissionDenied.Code, domain.ErrForbiddenOperation.Code:
 			status = http.StatusForbidden
@@ -274,8 +274,6 @@ func writeError(w http.ResponseWriter, err error) {
 		case domain.ErrInvalidTransition.Code, domain.ErrPhaseGateFailed.Code,
 			domain.ErrMaxRoundsExceeded.Code, domain.ErrScoreCardInvalid.Code:
 			status = http.StatusUnprocessableEntity
-		case domain.ErrOptimisticLock.Code:
-			status = http.StatusConflict
 		case domain.ErrConfigInvalid.Code:
 			status = http.StatusBadRequest
 		}
@@ -292,6 +290,7 @@ func writeSSEEvent(w http.ResponseWriter, f http.Flusher, ev domain.WorkflowEven
 }
 
 func writeSSEError(w http.ResponseWriter, f http.Flusher, err error) {
-	fmt.Fprintf(w, "event: error\ndata: %s\n\n", err.Error())
+	data, _ := json.Marshal(APIError{Code: -1, Message: err.Error()})
+	fmt.Fprintf(w, "event: error\ndata: %s\n\n", data)
 	f.Flush()
 }
