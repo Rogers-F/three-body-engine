@@ -138,6 +138,7 @@ export const mockEvents: WorkflowEvent[] = [
 export const mockScoreCards: ScoreCard[] = [
   {
     reviewId: 'rev-001',
+    taskId: 'task-demo-001',
     reviewer: 'provider-alpha',
     scores: {
       correctness: 4,
@@ -164,9 +165,11 @@ export const mockScoreCards: ScoreCard[] = [
     ],
     alternatives: ['Consider using a streaming parser for large payloads'],
     verdict: 'conditional_pass',
+    createdAt: 1700000000,
   },
   {
     reviewId: 'rev-002',
+    taskId: 'task-demo-001',
     reviewer: 'provider-beta',
     scores: {
       correctness: 3,
@@ -186,13 +189,14 @@ export const mockScoreCards: ScoreCard[] = [
     ],
     alternatives: ['Use circuit breaker pattern for external dependencies'],
     verdict: 'conditional_pass',
+    createdAt: 1700000060,
   },
 ]
 
 export const mockCostDeltas: CostDelta[] = [
-  { inputTokens: 2400, outputTokens: 800, amountUsd: 0.12, provider: 'claude', phase: 'A' },
-  { inputTokens: 5600, outputTokens: 2200, amountUsd: 0.45, provider: 'claude', phase: 'B' },
-  { inputTokens: 18000, outputTokens: 8500, amountUsd: 1.52, provider: 'codex', phase: 'C' },
-  { inputTokens: 12000, outputTokens: 4000, amountUsd: 0.88, provider: 'gemini', phase: 'D' },
-  { inputTokens: 8000, outputTokens: 3200, amountUsd: 0.48, provider: 'claude', phase: 'E' },
+  { inputTokens: 2400, outputTokens: 800, amountUsd: 0.12, provider: 'claude', phase: 'A', createdAt: 1700000000 },
+  { inputTokens: 5600, outputTokens: 2200, amountUsd: 0.45, provider: 'claude', phase: 'B', createdAt: 1700000120 },
+  { inputTokens: 18000, outputTokens: 8500, amountUsd: 1.52, provider: 'codex', phase: 'C', createdAt: 1700000240 },
+  { inputTokens: 12000, outputTokens: 4000, amountUsd: 0.88, provider: 'gemini', phase: 'D', createdAt: 1700000360 },
+  { inputTokens: 8000, outputTokens: 3200, amountUsd: 0.48, provider: 'claude', phase: 'E', createdAt: 1700000480 },
 ]

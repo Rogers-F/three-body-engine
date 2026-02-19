@@ -14,6 +14,9 @@ type Server struct {
 func NewServer(h *Handler, listenAddr string) *Server {
 	mux := http.NewServeMux()
 
+	// Health endpoint.
+	mux.HandleFunc("GET /api/v1/health", h.Health)
+
 	// Flow endpoints.
 	mux.HandleFunc("POST /api/v1/flow", h.CreateFlow)
 	mux.HandleFunc("GET /api/v1/flow/{taskID}", h.GetFlow)

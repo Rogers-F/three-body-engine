@@ -43,9 +43,9 @@ type AdvanceRequest struct {
 
 // CostSummary is the response for GET /api/v1/flow/{taskID}/cost.
 type CostSummary struct {
-	BudgetUsedUSD float64           `json:"budget_used_usd"`
-	BudgetCapUSD  float64           `json:"budget_cap_usd"`
-	CostAction    domain.CostAction `json:"cost_action"`
+	BudgetUsedUSD float64            `json:"budgetUsedUsd"`
+	BudgetCapUSD  float64            `json:"budgetCapUsd"`
+	CostAction    domain.CostAction  `json:"costAction"`
 	Deltas        []domain.CostDelta `json:"deltas"`
 }
 
@@ -53,6 +53,11 @@ type CostSummary struct {
 type APIError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+// Health handles GET /api/v1/health.
+func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 // GetFlow handles GET /api/v1/flow/{taskID}.
@@ -75,6 +80,10 @@ func (h *Handler) CreateFlow(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.TaskID == "" {
 		writeJSON(w, http.StatusBadRequest, APIError{Code: 400, Message: "task_id is required"})
+		return
+	}
+	if req.BudgetCapUSD <= 0 {
+		writeJSON(w, http.StatusBadRequest, APIError{Code: 400, Message: "budget_cap_usd must be positive"})
 		return
 	}
 
@@ -254,16 +263,21 @@ func writeError(w http.ResponseWriter, err error) {
 	if engErr, ok := err.(*domain.EngineError); ok {
 		status := http.StatusInternalServerError
 		switch engErr.Code {
-		case domain.ErrFlowNotFound.Code:
+		case domain.ErrFlowNotFound.Code, domain.ErrWorkerNotFound.Code, domain.ErrSessionNotFound.Code:
 			status = http.StatusNotFound
 		case domain.ErrDuplicateTask.Code:
 			status = http.StatusConflict
-		case domain.ErrBudgetExceeded.Code:
+		case domain.ErrBudgetExceeded.Code, domain.ErrPermissionDenied.Code, domain.ErrForbiddenOperation.Code:
 			status = http.StatusForbidden
 		case domain.ErrRateLimitExceeded.Code:
 			status = http.StatusTooManyRequests
-		case domain.ErrInvalidTransition.Code, domain.ErrPhaseGateFailed.Code:
+		case domain.ErrInvalidTransition.Code, domain.ErrPhaseGateFailed.Code,
+			domain.ErrMaxRoundsExceeded.Code, domain.ErrScoreCardInvalid.Code:
 			status = http.StatusUnprocessableEntity
+		case domain.ErrOptimisticLock.Code:
+			status = http.StatusConflict
+		case domain.ErrConfigInvalid.Code:
+			status = http.StatusBadRequest
 		}
 		writeJSON(w, status, APIError{Code: engErr.Code, Message: engErr.Message})
 		return

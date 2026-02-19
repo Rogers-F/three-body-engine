@@ -42,15 +42,19 @@ export interface GateDecision {
 /** Worker lifecycle state (matches backend domain.WorkerState) */
 export type WorkerStatus = 'created' | 'running' | 'soft_timeout' | 'hard_timeout' | 'replaced' | 'done'
 
-/** Worker specification (matches backend domain.WorkerSpec) */
+/** Worker reference (matches backend domain.WorkerRef returned by API) */
 export interface WorkerSpec {
+  workerId?: string
   taskId: string
   phase: Phase
   role: string
+  state?: WorkerStatus
   fileOwnership: string[]
-  digestPath: string
+  digestPath?: string
   softTimeoutSec: number
   hardTimeoutSec: number
+  lastHeartbeat?: number
+  createdAtUnix?: number
 }
 
 /** Intent for file operations (matches backend domain.Intent) */
@@ -163,11 +167,13 @@ export interface Issue {
 /** Structured review output (matches backend domain.ScoreCard) */
 export interface ScoreCard {
   reviewId: string
+  taskId: string
   reviewer: string
   scores: Scores
   issues: Issue[]
   alternatives: string[]
   verdict: 'pass' | 'conditional_pass' | 'fail'
+  createdAt: number
 }
 
 /** Aggregated review decision (matches backend domain.ConsensusResult) */
@@ -203,6 +209,7 @@ export interface CostDelta {
   amountUsd: number
   provider: Provider
   phase: Phase
+  createdAt: number
 }
 
 /** Aggregated cost summary (matches backend API response) */

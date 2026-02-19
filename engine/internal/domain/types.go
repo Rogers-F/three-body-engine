@@ -26,22 +26,22 @@ const (
 
 // FlowState holds the current state of a workflow task.
 type FlowState struct {
-	TaskID       string
-	CurrentPhase Phase
-	Status       FlowStatus
-	StateVersion int64
-	Round        int
-	BudgetUsedUSD float64
-	BudgetCapUSD  float64
-	LastEventSeq  int64
-	UpdatedAtUnix int64
+	TaskID        string     `json:"taskId"`
+	CurrentPhase  Phase      `json:"currentPhase"`
+	Status        FlowStatus `json:"status"`
+	StateVersion  int64      `json:"stateVersion"`
+	Round         int        `json:"round"`
+	BudgetUsedUSD float64   `json:"budgetUsedUsd"`
+	BudgetCapUSD  float64   `json:"budgetCapUsd"`
+	LastEventSeq  int64      `json:"lastEventSeq"`
+	UpdatedAtUnix int64      `json:"updatedAtUnix"`
 }
 
 // TransitionTrigger initiates a phase transition.
 type TransitionTrigger struct {
-	Action  string
-	Actor   string
-	Payload []byte
+	Action  string `json:"action"`
+	Actor   string `json:"actor"`
+	Payload []byte `json:"payload,omitempty"`
 }
 
 // GateDecision is the result of evaluating phase exit conditions.
@@ -132,13 +132,13 @@ type CompactionSlots struct {
 
 // WorkflowEvent represents an event in the workflow event log.
 type WorkflowEvent struct {
-	ID          int64
-	TaskID      string
-	SeqNo       int64
-	Phase       Phase
-	EventType   string
-	PayloadJSON string
-	CreatedAt   int64
+	ID          int64  `json:"id"`
+	TaskID      string `json:"taskId"`
+	SeqNo       int64  `json:"seqNo"`
+	Phase       Phase  `json:"phase"`
+	EventType   string `json:"eventType"`
+	PayloadJSON string `json:"payloadJson"`
+	CreatedAt   int64  `json:"createdAt"`
 }
 
 // PhaseSnapshot captures the state at a phase boundary.
@@ -167,32 +167,32 @@ type AuditRecord struct {
 
 // Scores holds the 5-dimension review scores (1-5 each).
 type Scores struct {
-	Correctness     int
-	Security        int
-	Maintainability int
-	Cost            int
-	DeliveryRisk    int
+	Correctness     int `json:"correctness"`
+	Security        int `json:"security"`
+	Maintainability int `json:"maintainability"`
+	Cost            int `json:"cost"`
+	DeliveryRisk    int `json:"deliveryRisk"`
 }
 
 // Issue represents a problem found during review.
 type Issue struct {
-	Severity    string
-	Location    string
-	Description string
-	Suggestion  string
-	Evidence    string
+	Severity    string `json:"severity"`
+	Location    string `json:"location"`
+	Description string `json:"description"`
+	Suggestion  string `json:"suggestion"`
+	Evidence    string `json:"evidence"`
 }
 
 // ScoreCard is a structured review output from a reviewer.
 type ScoreCard struct {
-	ReviewID     string
-	TaskID       string
-	Reviewer     string
-	Scores       Scores
-	Issues       []Issue
-	Alternatives []string
-	Verdict      string
-	CreatedAt    int64
+	ReviewID     string   `json:"reviewId"`
+	TaskID       string   `json:"taskId"`
+	Reviewer     string   `json:"reviewer"`
+	Scores       Scores   `json:"scores"`
+	Issues       []Issue  `json:"issues"`
+	Alternatives []string `json:"alternatives"`
+	Verdict      string   `json:"verdict"`
+	CreatedAt    int64    `json:"createdAt"`
 }
 
 // ConsensusResult is the aggregated review decision.
@@ -224,34 +224,34 @@ type SessionConfig struct {
 
 // NormalizedEvent is a provider-agnostic event from a code agent session.
 type NormalizedEvent struct {
-	Type      string
-	Provider  Provider
-	SessionID string
-	Payload   []byte
+	Type      string   `json:"type"`
+	Provider  Provider `json:"provider"`
+	SessionID string   `json:"sessionId"`
+	Payload   []byte   `json:"payload"`
 }
 
 // CostDelta records a cost increment.
 type CostDelta struct {
-	InputTokens  int64
-	OutputTokens int64
-	AmountUSD    float64
-	Provider     Provider
-	Phase        Phase
-	CreatedAt    int64
+	InputTokens  int64    `json:"inputTokens"`
+	OutputTokens int64    `json:"outputTokens"`
+	AmountUSD    float64  `json:"amountUsd"`
+	Provider     Provider `json:"provider"`
+	Phase        Phase    `json:"phase"`
+	CreatedAt    int64    `json:"createdAt"`
 }
 
 // WorkerRef tracks an active worker instance.
 type WorkerRef struct {
-	WorkerID       string
-	TaskID         string
-	Phase          Phase
-	Role           string
-	State          WorkerState
-	FileOwnership  []string
-	SoftTimeoutSec int
-	HardTimeoutSec int
-	LastHeartbeat  int64
-	CreatedAtUnix  int64
+	WorkerID       string      `json:"workerId"`
+	TaskID         string      `json:"taskId"`
+	Phase          Phase       `json:"phase"`
+	Role           string      `json:"role"`
+	State          WorkerState `json:"state"`
+	FileOwnership  []string    `json:"fileOwnership"`
+	SoftTimeoutSec int         `json:"softTimeoutSec"`
+	HardTimeoutSec int         `json:"hardTimeoutSec"`
+	LastHeartbeat  int64       `json:"lastHeartbeat"`
+	CreatedAtUnix  int64       `json:"createdAtUnix"`
 }
 
 // CapabilitySheet defines allowed operations for a task.

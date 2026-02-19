@@ -41,11 +41,15 @@ func (s *Session) Start(ctx context.Context) error {
 }
 
 // Stop terminates the provider process. Safe for Windows (uses Process.Kill).
+// Wait is called after Kill to reclaim OS resources and avoid zombie processes.
 func (s *Session) Stop() error {
 	if s.cmd.Process == nil {
 		return nil
 	}
 	err := s.cmd.Process.Kill()
+	// Wait reclaims OS process resources. Ignore its error since Kill
+	// already signals termination; Wait may return "process already finished".
+	_ = s.cmd.Wait()
 	s.markDone()
 	return err
 }
