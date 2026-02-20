@@ -2,7 +2,12 @@ package ipc
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
 )
 
 // Server wraps an HTTP server with engine-specific routing.
@@ -11,6 +16,8 @@ type Server struct {
 }
 
 // NewServer creates a Server that binds to the given address.
+// If a dist/ directory exists next to the executable (or in cwd),
+// it serves the frontend UI at "/" and auto-opens the browser.
 func NewServer(h *Handler, listenAddr string) *Server {
 	mux := http.NewServeMux()
 
@@ -34,6 +41,13 @@ func NewServer(h *Handler, listenAddr string) *Server {
 
 	// Cost endpoint.
 	mux.HandleFunc("GET /api/v1/flow/{taskID}/cost", h.GetCost)
+
+	// Serve frontend static files if dist/ directory exists.
+	if distDir := findDistDir(); distDir != "" {
+		log.Printf("serving frontend from %s", distDir)
+		fs := http.FileServer(spaFileSystem{root: http.Dir(distDir)})
+		mux.Handle("/", fs)
+	}
 
 	srv := &http.Server{
 		Addr:    listenAddr,
@@ -69,4 +83,55 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// findDistDir looks for a dist/ directory next to the executable, then in cwd.
+func findDistDir() string {
+	if exe, err := os.Executable(); err == nil {
+		candidate := filepath.Join(filepath.Dir(exe), "dist")
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+			return candidate
+		}
+	}
+	if info, err := os.Stat("dist"); err == nil && info.IsDir() {
+		return "dist"
+	}
+	return ""
+}
+
+// spaFileSystem wraps http.Dir to serve index.html for unknown paths (SPA routing).
+type spaFileSystem struct {
+	root http.FileSystem
+}
+
+func (s spaFileSystem) Open(name string) (http.File, error) {
+	f, err := s.root.Open(name)
+	if err != nil {
+		// If file not found, serve index.html for client-side routing.
+		return s.root.Open("/index.html")
+	}
+
+	// If it's a directory, check for index.html inside it.
+	stat, err := f.Stat()
+	if err != nil {
+		f.Close()
+		return s.root.Open("/index.html")
+	}
+	if stat.IsDir() {
+		indexPath := path.Join(name, "index.html")
+		if _, err := s.root.Open(indexPath); err != nil {
+			f.Close()
+			return s.root.Open("/index.html")
+		}
+	}
+
+	return f, nil
+}
+
+// FormatListenURL returns a clickable URL for the listen address.
+func FormatListenURL(addr string) string {
+	if addr[0] == ':' {
+		return fmt.Sprintf("http://localhost%s", addr)
+	}
+	return fmt.Sprintf("http://%s", addr)
 }
