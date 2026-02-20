@@ -23,9 +23,21 @@ import (
 	"github.com/anthropics/three-body-engine/internal/workflow"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
+	showVersion := flag.Bool("version", false, "print version and exit")
 	configPath := flag.String("config", "", "path to configuration JSON file")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("threebody %s (commit=%s, built=%s)\n", version, commit, date)
+		os.Exit(0)
+	}
 
 	// Fallback to environment variable.
 	path := *configPath
