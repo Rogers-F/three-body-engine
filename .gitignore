@@ -35,6 +35,12 @@ desktop/*.local
 Thumbs.db
 desktop.ini
 
+# Electron
+desktop/release/
+engine/dist/
+engine/config.json
+engine/*.db
+
 # Three-Body Runtime
 .task/
 .threebody/
