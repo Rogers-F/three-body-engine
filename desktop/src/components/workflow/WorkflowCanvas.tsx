@@ -19,6 +19,7 @@ import { useWorkflowStore } from '@/stores/workflow-store'
 import { useCanvasStore } from '@/stores/canvas-store'
 import { useUIStore } from '@/stores/ui-store'
 import { mockFlowState, mockWorkers } from '@/data/mock-workflow'
+import { advanceFlow } from '@/api/client'
 
 import type { Phase } from '@/types/workflow'
 
@@ -40,6 +41,7 @@ interface ContextMenu {
 export function WorkflowCanvas() {
   const flow = useWorkflowStore((s) => s.flow)
   const workers = useWorkflowStore((s) => s.workers)
+  const taskId = useWorkflowStore((s) => s.taskId)
   const selectNode = useCanvasStore((s) => s.selectNode)
   const openDrawer = useUIStore((s) => s.openDrawer)
 
@@ -109,10 +111,28 @@ export function WorkflowCanvas() {
     [],
   )
 
-  const handleContextMenuAction = useCallback((action: string) => {
-    // Actions are handled via store in a real implementation
-    console.log('Context menu action:', action)
-  }, [])
+  const handleContextMenuAction = useCallback(async (action: string) => {
+    if (!taskId) return
+    const actionMap: Record<string, string> = {
+      'retry': 'rework',
+      'force-pass': 'advance',
+      'rollback': 'rollback',
+    }
+    if (action === 'details') {
+      if (contextMenu) {
+        selectNode(contextMenu.nodeId)
+        openDrawer('phase')
+      }
+      return
+    }
+    const apiAction = actionMap[action]
+    if (!apiAction) return
+    try {
+      await advanceFlow(taskId, apiAction, 'user')
+    } catch (err) {
+      console.error('Flow action failed:', err)
+    }
+  }, [taskId, contextMenu, selectNode, openDrawer])
 
   const handlePaneClick = useCallback(() => {
     setContextMenu(null)
