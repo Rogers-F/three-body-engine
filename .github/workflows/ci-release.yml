@@ -136,6 +136,7 @@ jobs:
             desktop/release/*.dmg
             desktop/release/*.AppImage
             desktop/release/*.zip
+            desktop/release/*.tar.gz
           retention-days: 5
 
   # ── Job 3: Create GitHub Release ────────────────────────────

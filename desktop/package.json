@@ -46,21 +46,21 @@
       "electron/**/*"
     ],
     "win": {
-      "target": "nsis",
+      "target": ["nsis", "portable"],
       "extraResources": [
         { "from": "../engine/threebody.exe", "to": "threebody.exe" },
         { "from": "../config.example.json", "to": "config.json" }
       ]
     },
     "mac": {
-      "target": "dmg",
+      "target": ["dmg", "zip"],
       "extraResources": [
         { "from": "../engine/threebody", "to": "threebody" },
         { "from": "../config.example.json", "to": "config.json" }
       ]
     },
     "linux": {
-      "target": "AppImage",
+      "target": ["AppImage", "tar.gz"],
       "extraResources": [
         { "from": "../engine/threebody", "to": "threebody" },
         { "from": "../config.example.json", "to": "config.json" }
