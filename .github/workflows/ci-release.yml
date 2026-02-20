@@ -70,6 +70,9 @@ jobs:
             ext: ""
             electron_args: --linux
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: write
     steps:
