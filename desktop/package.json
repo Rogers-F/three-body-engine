@@ -4,6 +4,9 @@
   "version": "0.2.0",
   "type": "module",
   "main": "electron/main.cjs",
+  "description": "Three-Body Engine desktop application",
+  "author": "Three-Body Team",
+  "repository": "https://github.com/Rogers-F/three-body-engine",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -37,6 +40,7 @@
     "directories": {
       "output": "release"
     },
+    "publish": null,
     "files": [
       "dist/**/*",
       "electron/**/*"
