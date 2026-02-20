@@ -8,72 +8,77 @@ const ENGINE_PORT = 9800
 let engineProcess = null
 let mainWindow = null
 
-function getEnginePath() {
+// ── Locate the Go engine binary ────────────────────────────
+function findEngine() {
   const ext = process.platform === 'win32' ? '.exe' : ''
   const name = `threebody${ext}`
-
-  // Packaged: extraResources are placed in resources/
-  const packed = path.join(process.resourcesPath, name)
-  if (fs.existsSync(packed)) return packed
-
-  // Dev: engine/ sibling directory
-  const dev = path.join(__dirname, '..', '..', 'engine', name)
-  if (fs.existsSync(dev)) return dev
-
+  const candidates = [
+    // Packaged (electron-builder extraResources)
+    path.join(process.resourcesPath || '', name),
+    // Dev: engine/ sibling
+    path.join(__dirname, '..', '..', 'engine', name),
+  ]
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p
+  }
   return null
 }
 
-function getConfigPath(engineDir) {
-  const candidate = path.join(engineDir, 'config.json')
-  if (fs.existsSync(candidate)) return candidate
+// ── Locate the frontend dist/ directory ────────────────────
+function findDist() {
+  const candidates = [
+    // Packaged (electron-builder files)
+    path.join(__dirname, '..', 'dist', 'index.html'),
+    // Dev: desktop/dist after `npm run build`
+    path.join(__dirname, '..', 'dist', 'index.html'),
+  ]
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return path.dirname(p)
+  }
   return null
 }
 
+// ── Start the Go engine subprocess ─────────────────────────
 function startEngine() {
-  const enginePath = getEnginePath()
+  const enginePath = findEngine()
   if (!enginePath) {
-    console.error('Engine binary not found')
-    return false
+    console.error('[electron] Engine binary not found, running frontend-only')
+    return
   }
 
   const engineDir = path.dirname(enginePath)
-  const configPath = getConfigPath(engineDir)
-  const args = configPath ? ['--config', configPath] : []
+  const configPath = path.join(engineDir, 'config.json')
+  const args = fs.existsSync(configPath) ? ['--config', configPath] : []
 
+  console.log(`[electron] Starting engine: ${enginePath}`)
   engineProcess = spawn(enginePath, args, {
     cwd: engineDir,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
-
-  engineProcess.stdout.on('data', (d) => process.stdout.write(`[engine] ${d}`))
-  engineProcess.stderr.on('data', (d) => process.stderr.write(`[engine] ${d}`))
+  engineProcess.stdout.on('data', (d) => process.stdout.write(String(d)))
+  engineProcess.stderr.on('data', (d) => process.stderr.write(String(d)))
   engineProcess.on('exit', (code) => {
-    console.log(`Engine exited (code ${code})`)
+    console.log(`[electron] Engine exited (${code})`)
     engineProcess = null
   })
-
-  return true
 }
 
-function waitForEngine(timeout = 15000) {
-  const start = Date.now()
+// ── Wait for Go engine to accept connections ───────────────
+function waitForEngine(timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
-    function attempt() {
-      if (Date.now() - start > timeout) {
-        return reject(new Error('Engine start timeout'))
-      }
-      const socket = net.createConnection({ port: ENGINE_PORT, host: '127.0.0.1' }, () => {
-        socket.destroy()
+    const deadline = Date.now() + timeoutMs
+    ;(function probe() {
+      if (Date.now() > deadline) return reject(new Error('engine timeout'))
+      const sock = net.createConnection({ port: ENGINE_PORT, host: '127.0.0.1' }, () => {
+        sock.destroy()
         resolve()
       })
-      socket.on('error', () => {
-        setTimeout(attempt, 300)
-      })
-    }
-    attempt()
+      sock.on('error', () => setTimeout(probe, 200))
+    })()
   })
 }
 
+// ── Create the main window ─────────────────────────────────
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -82,42 +87,48 @@ function createWindow() {
     minHeight: 600,
     title: 'Three-Body Engine',
     backgroundColor: '#131314',
+    show: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
 
-  mainWindow.loadURL(`http://127.0.0.1:${ENGINE_PORT}`)
+  const distDir = findDist()
+  if (distDir) {
+    console.log(`[electron] Loading frontend from ${distDir}`)
+    mainWindow.loadFile(path.join(distDir, 'index.html'))
+  } else {
+    // Fallback: load from Go engine server
+    console.log('[electron] dist/ not found, loading from engine server')
+    mainWindow.loadURL(`http://127.0.0.1:${ENGINE_PORT}`)
+  }
 
-  mainWindow.on('closed', () => {
-    mainWindow = null
-  })
+  mainWindow.once('ready-to-show', () => mainWindow.show())
+  mainWindow.on('closed', () => { mainWindow = null })
 }
 
+// ── App lifecycle ──────────────────────────────────────────
 app.whenReady().then(async () => {
-  const started = startEngine()
-  if (started) {
-    try {
-      await waitForEngine()
-    } catch (e) {
-      console.error(e.message)
+  startEngine()
+  if (engineProcess) {
+    try { await waitForEngine() } catch (e) {
+      console.error(`[electron] ${e.message}`)
     }
   }
   createWindow()
 })
 
 app.on('window-all-closed', () => {
-  if (engineProcess) {
-    engineProcess.kill()
-    engineProcess = null
-  }
+  killEngine()
   app.quit()
 })
 
-app.on('before-quit', () => {
+app.on('before-quit', killEngine)
+
+function killEngine() {
   if (engineProcess) {
     engineProcess.kill()
     engineProcess = null
   }
-})
+}
