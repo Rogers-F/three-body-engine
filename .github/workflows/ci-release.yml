@@ -110,6 +110,9 @@ jobs:
           name: frontend-dist
           path: _staging/dist
 
+      - name: Bundle config
+        run: cp config.example.json _staging/config.json
+
       - name: Build Go binary
         working-directory: engine
         env:
