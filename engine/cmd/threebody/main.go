@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -9,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -39,19 +42,21 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Fallback to environment variable.
+	// Resolve config path: --config flag > TB_CONFIG env > auto-discover next to exe.
 	path := *configPath
 	if path == "" {
 		path = os.Getenv("TB_CONFIG")
 	}
 	if path == "" {
-		fmt.Fprintln(os.Stderr, "usage: threebody --config <path> (or set TB_CONFIG)")
-		os.Exit(1)
+		path = discoverConfig()
+	}
+	if path == "" {
+		fatal("no config found. Place config.json next to the exe, use --config <path>, or set TB_CONFIG.")
 	}
 
 	cfg, err := config.Load(path)
 	if err != nil {
-		log.Fatalf("load config: %v", err)
+		fatal(fmt.Sprintf("load config: %v", err))
 	}
 
 	db, err := store.NewDB(cfg.DBPath)
@@ -144,6 +149,33 @@ func main() {
 	_ = wm
 
 	if err := srv.Start(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("server error: %v", err)
+		fatal(fmt.Sprintf("server error: %v", err))
 	}
+}
+
+// discoverConfig looks for config.json next to the executable, then in the cwd.
+func discoverConfig() string {
+	// Next to executable.
+	if exe, err := os.Executable(); err == nil {
+		candidate := filepath.Join(filepath.Dir(exe), "config.json")
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+	}
+	// Current working directory.
+	if _, err := os.Stat("config.json"); err == nil {
+		return "config.json"
+	}
+	return ""
+}
+
+// fatal prints an error and, on Windows, waits for a keypress so the user can
+// read the message when the exe is launched by double-click.
+func fatal(msg string) {
+	fmt.Fprintf(os.Stderr, "ERROR: %s\n", msg)
+	if runtime.GOOS == "windows" {
+		fmt.Fprintln(os.Stderr, "\nPress Enter to exit...")
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
+	}
+	os.Exit(1)
 }

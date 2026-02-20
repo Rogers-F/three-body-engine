@@ -148,8 +148,15 @@ Create a config file (`config.json`):
 ```
 
 ```bash
+# Option 1: explicit config path
 ./threebody --config config.json
+
+# Option 2: place config.json next to the exe, then double-click (Windows)
+# Option 3: set environment variable
+TB_CONFIG=./config.json ./threebody
 ```
+
+The engine auto-discovers `config.json` next to the executable or in the working directory. On Windows, errors are displayed with a "Press Enter to exit" prompt so the window doesn't close immediately.
 
 The engine starts on `http://localhost:9800`. The frontend connects automatically (configure via `VITE_API_URL` env var or the Settings view).
 
@@ -170,7 +177,7 @@ cd desktop && npm run build
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/healthz` | Health check |
+| `GET` | `/api/v1/health` | Health check |
 | `POST` | `/api/v1/flow` | Create a new workflow |
 | `GET` | `/api/v1/flow/{taskID}` | Get workflow state |
 | `POST` | `/api/v1/flow/{taskID}/advance` | Advance to next phase |
